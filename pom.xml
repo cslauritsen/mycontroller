@@ -24,12 +24,12 @@
   <parent>
     <groupId>org.mycontroller</groupId>
     <artifactId>mycontroller-parent</artifactId>
-    <version>8</version>
+    <version>16</version>
   </parent>
 
   <groupId>org.mycontroller.standalone</groupId>
   <artifactId>mycontroller-standalone-parent</artifactId>
-  <version>0.0.3.Alpha2-SNAPSHOT</version>
+  <version>0.0.3.Final-SNAPSHOT</version>
   <url>https://github.com/mycontroller-org</url>
   <inceptionYear>2015</inceptionYear>
   <packaging>pom</packaging>
@@ -250,6 +250,24 @@
     <dependency>
       <groupId>org.python</groupId>
       <artifactId>jython</artifactId>
+    </dependency>
+
+    <!-- MariaDB driver -->
+    <dependency>
+      <groupId>org.mariadb.jdbc</groupId>
+      <artifactId>mariadb-java-client</artifactId>
+    </dependency>
+
+    <!-- MySQL database driver -->
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+    </dependency>
+
+    <!-- PostgreSQL database driver -->
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
     </dependency>
 
   </dependencies>
