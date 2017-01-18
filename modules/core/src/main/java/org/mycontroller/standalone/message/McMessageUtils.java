@@ -18,10 +18,7 @@ package org.mycontroller.standalone.message;
 
 import java.util.HashMap;
 
-import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.mycontroller.standalone.AppProperties;
-import org.mycontroller.standalone.AppShutdownHook;
 import org.mycontroller.standalone.AppProperties.NETWORK_TYPE;
 import org.mycontroller.standalone.AppProperties.UNIT_CONFIG;
 import org.mycontroller.standalone.McObjectManager;
@@ -40,6 +37,7 @@ import org.mycontroller.standalone.provider.rflink.RFLinkProviderBridge;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.mycontroller.standalone.republisher.MqttRepublisherService;
 
 /* All the messages based on MYSENSORS.ORG, Do not add new */
 /**
@@ -546,7 +544,6 @@ public class McMessageUtils {
     private static IProviderBridge phantIOBridge = new PhantIOProviderBridge();
     private static IProviderBridge rpiAgentBridge = new McProviderBridge();
     private static IProviderBridge rfLinkBridge = new RFLinkProviderBridge();
-    private static MqttClient mqttClient;
 
     public static synchronized void sendToGateway(RawMessage rawMessage) {
         //Send message to nodes [going out from MyController]
@@ -601,38 +598,17 @@ public class McMessageUtils {
         }
         //Get Raw Message and add it on Message queue
         try {
-            RawMessageQueue.getInstance().putMessage(getRawMessage(mcMessage));
+            RawMessage rawMessage = getRawMessage(mcMessage);
+            RawMessageQueue.getInstance().putMessage(rawMessage);
         } catch (McBadRequestException | RawMessageException ex) {
             _logger.error("Unable to process this {}", mcMessage, ex);
         }
-    }
-    
-
-
-    public static synchronized void republishToMqtt(McMessage mcMessage) {
-    	if (!AppProperties.getInstance().getMqttClientSettings().getEnabled()) {
-    		return;
-    	}
-    	MqttMessage msg = new MqttMessage(mcMessage.);
-        if (mcMessage.getNetworkType() == null) {
-            mcMessage.setNetworkType(GatewayUtils.getNetworkType(mcMessage.getGatewayId()));
-        }
-        //Do not block stream message on smartSleep
-        if (mcMessage.isTxMessage() && mcMessage.getType() != MESSAGE_TYPE.C_STREAM) {
-            Node node = DaoUtils.getNodeDao().get(mcMessage.getGatewayId(), mcMessage.getNodeEui());
-            if (node != null && node.getSmartSleepEnabled()) {
-                if (mcMessage.isTxMessage() && !mcMessage.isScreeningDone()) {
-                    sendToMcMessageEngine(mcMessage);
-                }
-                SmartSleepMessageQueue.getInstance().putMessage(mcMessage);
-                return;
+        
+        if (AppProperties.getInstance().getMqttRepublisherSettings().getEnabled()) {
+            boolean success = MqttRepublisherService.QUEUE.offer(mcMessage);
+            if (!success) {
+                _logger.warn("MQTT outbound republish queue full");
             }
-        }
-        //Get Raw Message and add it on Message queue
-        try {
-            RawMessageQueue.getInstance().putMessage(getRawMessage(mcMessage));
-        } catch (McBadRequestException | RawMessageException ex) {
-            _logger.error("Unable to process this {}", mcMessage, ex);
         }
     }
 

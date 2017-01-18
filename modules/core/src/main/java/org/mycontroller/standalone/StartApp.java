@@ -76,6 +76,7 @@ import org.mycontroller.standalone.timer.TimerUtils;
 import org.mycontroller.standalone.utils.McUtils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.mycontroller.standalone.republisher.MqttRepublisherService;
 
 /**
  * @author Jeeva Kandasamy (jkandasa)
@@ -278,6 +279,8 @@ public class StartApp {
 
         // - Start scheduler
         SchedulerUtils.startScheduler();
+        
+        MqttRepublisherService.start();
 
         // - Start Web Server
         startHTTPWebServer();

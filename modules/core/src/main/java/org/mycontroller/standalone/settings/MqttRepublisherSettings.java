@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Jeeva Kandasamy (jkandasa@gmail.com)
+ * Copyright 2015-2017 Jeeva Kandasamy (jkandasa@gmail.com)
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,25 +34,27 @@ import lombok.ToString;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class MqttClientSettings {
+public class MqttRepublisherSettings {
 
-    public static final String KEY_MQTT_CLIENT = "mqttClient";
+    public static final String KEY_MQTT_REPUBLISHER = "mqttRepublisher";
     public static final String SKEY_ENABLED = "enabled";
     public static final String SKEY_URL = "url";
     public static final String SKEY_USERNAME = "username";
     public static final String SKEY_PASSWORD = "password";
+    public static final String SKEY_TOPIC_PREFIX = "topicPrefix";
 
     private Boolean enabled;
     private String url;
     private String username;
     private String password;
+    private String topicPrefix;
 
     public Boolean getEnabled() {
         return enabled == null ? false : enabled;
     }
 
-    public static MqttClientSettings get() {
-        return MqttClientSettings.builder()
+    public static MqttRepublisherSettings get() {
+        return MqttRepublisherSettings.builder()
                 .enabled(McUtils.getBoolean(getValue(SKEY_ENABLED)))
                 .url(getValue(SKEY_URL))
                 .username(getValue(SKEY_USERNAME))
@@ -76,10 +78,10 @@ public class MqttClientSettings {
     }
 
     private static String getValue(String subKey) {
-        return SettingsUtils.getValue(KEY_MQTT_BROKER, subKey);
+        return SettingsUtils.getValue(KEY_MQTT_REPUBLISHER, subKey);
     }
 
     private void updateValue(String subKey, Object value) {
-        SettingsUtils.updateValue(KEY_MQTT_BROKER, subKey, value);
+        SettingsUtils.updateValue(KEY_MQTT_REPUBLISHER, subKey, value);
     }
 }

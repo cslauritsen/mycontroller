@@ -78,7 +78,6 @@ import lombok.extern.slf4j.Slf4j;
 public class McMessageEngine implements Runnable {
     private static final int FIRMWARE_PRINT_LOG = 100;
     private McMessage mcMessage;
-    private MqttClient mqttClient;
 
     public McMessageEngine(McMessage mcMessage) {
         switch (mcMessage.getNetworkType()) {
