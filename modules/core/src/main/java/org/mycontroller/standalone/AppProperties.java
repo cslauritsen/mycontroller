@@ -27,6 +27,7 @@ import org.mycontroller.standalone.settings.LocationSettings;
 import org.mycontroller.standalone.settings.MetricsDataRetentionSettings;
 import org.mycontroller.standalone.settings.MetricsGraphSettings;
 import org.mycontroller.standalone.settings.MqttBrokerSettings;
+import org.mycontroller.standalone.settings.MqttClientSettings;
 import org.mycontroller.standalone.settings.MyControllerSettings;
 import org.mycontroller.standalone.settings.MySensorsSettings;
 import org.mycontroller.standalone.settings.PushbulletSettings;
@@ -89,6 +90,7 @@ public class AppProperties {
     MetricsDataRetentionSettings metricsDataRetentionSettings;
     BackupSettings backupSettings;
     MqttBrokerSettings mqttBrokerSettings;
+    MqttClientSettings mqttClientSettings;
 
     public enum DB_TYPE {
         H2DB_EMBEDDED("H2 database embedded"),
@@ -508,6 +510,7 @@ public class AppProperties {
         backupSettings = BackupSettings.get();
         pushbulletSettings = PushbulletSettings.get();
         mqttBrokerSettings = MqttBrokerSettings.get();
+        mqttClientSettings = MqttClientSettings.get();
     }
 
     private boolean is12HoursSelected() {
@@ -711,6 +714,10 @@ public class AppProperties {
 
     public MqttBrokerSettings getMqttBrokerSettings() {
         return mqttBrokerSettings;
+    }
+    
+    public MqttClientSettings getMqttClientSettings() {
+    	return mqttClientSettings;
     }
 
     public Boolean getClearMessagesQueueOnStart() {
