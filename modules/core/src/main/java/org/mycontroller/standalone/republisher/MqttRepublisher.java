@@ -16,15 +16,17 @@
  */
 package org.mycontroller.standalone.republisher;
 
-import org.mycontroller.standalone.AppProperties;
 import java.nio.charset.Charset;
-import lombok.extern.slf4j.Slf4j;
+
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.mycontroller.standalone.AppProperties;
 import org.mycontroller.standalone.message.McMessage;
 import org.mycontroller.standalone.settings.MqttRepublisherSettings;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Jeeva Kandasamy (jkandasa)
@@ -36,7 +38,7 @@ public class MqttRepublisher implements Runnable {
     private MqttClient mqttClient;
     private final MqttRepublisherSettings settings;
     private final String topicPrefix;
-    
+
     public MqttRepublisher() {
         settings = AppProperties.getInstance().getMqttRepublisherSettings();
         topicPrefix = settings.getTopicPrefix();
@@ -56,12 +58,12 @@ public class MqttRepublisher implements Runnable {
             }
         }
     }
-    
+
     public void run() {
         try {
             Charset utf8 = Charset.forName("UTF-8");
             StringBuilder topic = new StringBuilder();
-            while(true) {
+            while (true) {
                 topic.setLength(0);
                 McMessage mcMessage = MqttRepublisherService.QUEUE.take();
                 topic.append(topicPrefix)
@@ -76,13 +78,11 @@ public class MqttRepublisher implements Runnable {
                 try {
                     MqttMessage mqttMessage = new MqttMessage(mcMessage.getPayload().getBytes(utf8));
                     mqttClient.publish(topic.toString(), mqttMessage);
-                }
-                catch (MqttException ex) {
+                } catch (MqttException ex) {
                     _logger.error("Failed to republish message, ", ex);
                 }
             }
-        }
-        catch (InterruptedException ex) {
+        } catch (InterruptedException ex) {
             _logger.error("Interrupted while reading a message from the MQTT broker, ", ex);
         }
     }

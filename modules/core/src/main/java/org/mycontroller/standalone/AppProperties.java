@@ -715,9 +715,9 @@ public class AppProperties {
     public MqttBrokerSettings getMqttBrokerSettings() {
         return mqttBrokerSettings;
     }
-    
+
     public MqttRepublisherSettings getMqttRepublisherSettings() {
-    	return mqttRepublisherSettings;
+        return mqttRepublisherSettings;
     }
 
     public Boolean getClearMessagesQueueOnStart() {

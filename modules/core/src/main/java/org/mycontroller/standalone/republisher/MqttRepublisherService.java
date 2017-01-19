@@ -16,17 +16,17 @@
  */
 package org.mycontroller.standalone.republisher;
 
-
-import org.mycontroller.standalone.AppProperties;
-
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import org.mycontroller.standalone.AppProperties;
+import org.mycontroller.standalone.message.McMessage;
+
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.mycontroller.standalone.message.McMessage;
 
 /**
  * @author Jeeva Kandasamy (jkandasa)
@@ -37,7 +37,7 @@ import org.mycontroller.standalone.message.McMessage;
 public class MqttRepublisherService {
     private static boolean isRunning = false;
     private static final ExecutorService SERVICE = Executors.newFixedThreadPool(1);
-    public static  final BlockingQueue<McMessage> QUEUE = new ArrayBlockingQueue<>(100);
+    public static final BlockingQueue<McMessage> QUEUE = new ArrayBlockingQueue<>(100);
 
     public static synchronized void start() {
         if (!AppProperties.getInstance().getMqttRepublisherSettings().getEnabled()) {
