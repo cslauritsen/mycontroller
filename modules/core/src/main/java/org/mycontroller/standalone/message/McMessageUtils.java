@@ -33,11 +33,11 @@ import org.mycontroller.standalone.provider.mysensors.MySensorsProviderBridge;
 import org.mycontroller.standalone.provider.mysensors.MySensorsUtils;
 import org.mycontroller.standalone.provider.phantio.PhantIOProviderBridge;
 import org.mycontroller.standalone.provider.rflink.RFLinkProviderBridge;
+import org.mycontroller.standalone.republisher.MqttRepublisherService;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.mycontroller.standalone.republisher.MqttRepublisherService;
 
 /* All the messages based on MYSENSORS.ORG, Do not add new */
 /**
@@ -602,16 +602,15 @@ public class McMessageUtils {
         }
         //Get Raw Message and add it on Message queue
         try {
-            RawMessage rawMessage = getRawMessage(mcMessage);
-            RawMessageQueue.getInstance().putMessage(rawMessage);
+            RawMessageQueue.getInstance().putMessage(getRawMessage(mcMessage));
         } catch (McBadRequestException | RawMessageException ex) {
             _logger.error("Unable to process this {}", mcMessage, ex);
         }
-        
+
         if (AppProperties.getInstance().getMqttRepublisherSettings().getEnabled()) {
             boolean success = MqttRepublisherService.QUEUE.offer(mcMessage);
             if (!success) {
-                _logger.warn("MQTT outbound republish queue full");
+                _logger.error("MQTT republish failed: queue full");
             }
         }
     }

@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MqttRepublisherService {
     private static boolean isRunning = false;
-    private static final ExecutorService SERVICE = Executors.newFixedThreadPool(1);
+    private static final ExecutorService THREAD_POOL = Executors.newFixedThreadPool(1);
     public static final BlockingQueue<McMessage> QUEUE = new ArrayBlockingQueue<>(100);
 
     public static synchronized void start() {
@@ -48,7 +48,7 @@ public class MqttRepublisherService {
             _logger.info("MQTT Republisher already running, nothing to do...");
             return;
         }
-        SERVICE.submit(new MqttRepublisher());
+        THREAD_POOL.submit(new MqttRepublisher());
         isRunning = true;
         _logger.info("MQTT Republisher started successfully.");
     }
@@ -58,7 +58,7 @@ public class MqttRepublisherService {
             _logger.debug("MQTT Republisher is not running, nothing to do...");
             return;
         }
-        SERVICE.shutdown();
+        THREAD_POOL.shutdown();
         isRunning = false;
         _logger.info("MQTT Republisher has been stopped successfully");
     }

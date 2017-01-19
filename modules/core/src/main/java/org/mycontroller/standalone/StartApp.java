@@ -70,6 +70,7 @@ import org.mycontroller.standalone.gateway.GatewayUtils;
 import org.mycontroller.standalone.mdns.McmDNSFactory;
 import org.mycontroller.standalone.message.MessageMonitorThread;
 import org.mycontroller.standalone.mqttbroker.MoquetteMqttBroker;
+import org.mycontroller.standalone.republisher.MqttRepublisherService;
 import org.mycontroller.standalone.scheduler.SchedulerUtils;
 import org.mycontroller.standalone.scripts.McScriptEngineUtils;
 import org.mycontroller.standalone.settings.SettingsUtils;
@@ -77,7 +78,6 @@ import org.mycontroller.standalone.timer.TimerUtils;
 import org.mycontroller.standalone.utils.McUtils;
 
 import lombok.extern.slf4j.Slf4j;
-import org.mycontroller.standalone.republisher.MqttRepublisherService;
 
 /**
  * @author Jeeva Kandasamy (jkandasa)
@@ -284,7 +284,8 @@ public class StartApp {
 
         // - Start scheduler
         SchedulerUtils.startScheduler();
-        
+
+        // - Start Mqtt Republisher
         MqttRepublisherService.start();
 
         // - Start Web Server
