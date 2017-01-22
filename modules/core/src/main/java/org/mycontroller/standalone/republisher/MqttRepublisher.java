@@ -24,6 +24,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.mycontroller.standalone.AppProperties;
 import org.mycontroller.standalone.message.McMessage;
+import org.mycontroller.standalone.message.RawMessageException;
 import org.mycontroller.standalone.settings.MqttRepublisherSettings;
 
 import lombok.extern.slf4j.Slf4j;
@@ -45,13 +46,20 @@ public class MqttRepublisher implements Runnable {
         if (settings.getEnabled()) {
             try {
                 String url = settings.getUrl();
-                mqttClient = new MqttClient(url, "myctrlr");
+                _logger.debug("MQTT url: '{}'", url);
+                url = "tcp://192.168.1.2:1883";
+//                url = "tcp://stap3poldwv.sherwin.com:1883";
+                _logger.debug("urls equal {}", "tcp://stap3poldwv.sherwin.com:1833".equals(url));
+                mqttClient = new MqttClient(url, MqttClient.generateClientId());
                 MqttConnectOptions opts = new MqttConnectOptions();
-                if (settings.getUsername() != null) {
+                if (settings.getUsername() != null && settings.getUsername().length() > 0) {
                     opts.setUserName(settings.getUsername());
                     opts.setPassword(settings.getPassword().toCharArray());
+                    mqttClient.connect(opts);
                 }
-                mqttClient.connect(opts);
+                else {
+                    mqttClient.connect();
+                }
                 _logger.info("Connected to MQTT Broker successfully. {}", url);
             } catch (MqttException ex) {
                 _logger.error("Unable to connect to MQTT Broker, Exception, ", ex);
@@ -61,21 +69,22 @@ public class MqttRepublisher implements Runnable {
 
     public void run() {
         try {
+            _logger.info("MQTT Republishing starting...");
             Charset utf8 = Charset.forName("UTF-8");
             StringBuilder topic = new StringBuilder();
             while (true) {
-                topic.setLength(0);
-                McMessage mcMessage = MqttRepublisherService.QUEUE.take();
-                topic.append(topicPrefix)
-                        .append('/')
-                        .append(mcMessage.getNodeEui())
-                        .append('/')
-                        .append(mcMessage.getSensorId())
-                        .append('/')
-                        .append(mcMessage.getType())
-                        .append('/')
-                        .append(mcMessage.getSubType());
                 try {
+                    topic.setLength(0);
+                    McMessage mcMessage = MqttRepublisherService.QUEUE.take();
+                    topic.append(topicPrefix)
+                    .append('/')
+                    .append(mcMessage.getNodeEui())
+                    .append('/')
+                    .append(mcMessage.getSensorId())
+                    .append('/')
+                    .append(mcMessage.getType())
+                    .append('/')
+                    .append(mcMessage.getSubType());
                     MqttMessage mqttMessage = new MqttMessage(mcMessage.getPayload().getBytes(utf8));
                     mqttClient.publish(topic.toString(), mqttMessage);
                 } catch (MqttException ex) {
@@ -84,6 +93,15 @@ public class MqttRepublisher implements Runnable {
             }
         } catch (InterruptedException ex) {
             _logger.error("Interrupted while reading a message from the MQTT broker, ", ex);
+        }
+        finally {
+            _logger.info("MQTT Republishing ending.");
+            try {
+                mqttClient.disconnect();
+                _logger.info("MQTT Republishing disconnected from broker.");
+            } catch (MqttException e) {
+                _logger.error("Exception disconnecting from the MQTT broker, ", e);
+            }
         }
     }
 

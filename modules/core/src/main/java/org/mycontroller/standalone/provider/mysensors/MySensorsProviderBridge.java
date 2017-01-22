@@ -16,6 +16,7 @@
  */
 package org.mycontroller.standalone.provider.mysensors;
 
+import org.mycontroller.standalone.AppProperties;
 import org.mycontroller.standalone.AppProperties.NETWORK_TYPE;
 import org.mycontroller.standalone.db.tables.Node;
 import org.mycontroller.standalone.db.tables.Sensor;
@@ -24,6 +25,7 @@ import org.mycontroller.standalone.message.McMessage;
 import org.mycontroller.standalone.message.McMessageUtils;
 import org.mycontroller.standalone.message.RawMessage;
 import org.mycontroller.standalone.message.RawMessageException;
+import org.mycontroller.standalone.republisher.MqttRepublisherService;
 import org.mycontroller.standalone.utils.McUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -57,8 +59,15 @@ public class MySensorsProviderBridge implements IProviderBridge {
             _logger.debug("Received raw message: [{}]", rawMessage);
             McMessage mcMessage = new MySensorsRawMessage(rawMessage).getMcMessage();
             McMessageUtils.sendToMcMessageEngine(mcMessage);
+            
             if (rawMessage.isTxMessage()) {
                 executeMcMessage(mcMessage);
+            }
+            if (AppProperties.getInstance().getMqttRepublisherSettings().getEnabled()) {
+                boolean success = MqttRepublisherService.QUEUE.offer(mcMessage);
+                if (!success) {
+                    _logger.error("MQTT republish failed: queue full");
+                }
             }
         } catch (RawMessageException ex) {
             _logger.error("Unable to process this rawMessage:{}", rawMessage, ex);

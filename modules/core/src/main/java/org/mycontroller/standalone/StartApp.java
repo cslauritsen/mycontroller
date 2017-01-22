@@ -297,6 +297,7 @@ public class StartApp {
     public static synchronized void stopServices() {
         //Stop order..
         // - stop web server
+        // - stop mqttrepublisher
         // - clear external servers
         // - Stop scheduler
         // - Stop GatewayTable Listener
@@ -305,6 +306,7 @@ public class StartApp {
         // - Clear Raw Message Queue (Optional)
         // - Stop DB service
         stopHTTPWebServer();
+        MqttRepublisherService.stop();
         ExternalServerUtils.clearServers();
         SchedulerUtils.stop();
         GatewayUtils.unloadAllGateways();

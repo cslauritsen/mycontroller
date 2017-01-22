@@ -50,38 +50,49 @@ public class MqttRepublisherSettings {
     private String topicPrefix;
 
     public Boolean getEnabled() {
-        return enabled == null ? false : enabled;
+        // XXX
+        return true; // || enabled == null ? false : enabled;
     }
 
     public static MqttRepublisherSettings get() {
         return MqttRepublisherSettings.builder()
-                .enabled(McUtils.getBoolean(getValue(SKEY_ENABLED)))
+                // XXX
+                .enabled(true || McUtils.getBoolean(getValue(SKEY_ENABLED)))
                 .url(getValue(SKEY_URL))
                 .username(getValue(SKEY_USERNAME))
                 .password(getValue(SKEY_PASSWORD))
+                .topicPrefix(getValue(SKEY_TOPIC_PREFIX))
                 .build();
     }
 
     public void save() {
-        if (enabled != null) {
-            updateValue(SKEY_ENABLED, enabled);
-        }
-        if (url != null) {
-            updateValue(SKEY_URL, url.trim());
-        }
-        if (username != null) {
-            updateValue(SKEY_USERNAME, username);
-        }
-        if (password != null) {
-            updateValue(SKEY_PASSWORD, password);
-        }
+        // XXX figure out later
+        //        if (enabled != null) {
+        //            updateValue(SKEY_ENABLED, enabled);
+        //        }
+        //        if (url != null) {
+        //            updateValue(SKEY_URL, url.trim());
+        //        }
+        //        if (username != null) {
+        //            updateValue(SKEY_USERNAME, username);
+        //        }
+        //        if (password != null) {
+        //            updateValue(SKEY_PASSWORD, password);
+        //        }
+        //        if (topicPrefix != null) {
+        //            updateValue(SKEY_TOPIC_PREFIX, topicPrefix);
+        //        }
     }
 
     private static String getValue(String subKey) {
-        return SettingsUtils.getValue(KEY_MQTT_REPUBLISHER, subKey);
+        // XXX Dumbing this down until i figure out how it really works
+        //        return SettingsUtils.getValue(KEY_MQTT_REPUBLISHER, subKey);
+        String x = System.getProperty(KEY_MQTT_REPUBLISHER + "." + subKey, "");
+        System.out.printf("Getting value for %s.%s => %s%n", KEY_MQTT_REPUBLISHER, subKey, x);
+        return x;
     }
 
-    private void updateValue(String subKey, Object value) {
-        SettingsUtils.updateValue(KEY_MQTT_REPUBLISHER, subKey, value);
-    }
+    //    private void updateValue(String subKey, Object value) {
+    //        SettingsUtils.updateValue(KEY_MQTT_REPUBLISHER, subKey, value);
+    //    }
 }

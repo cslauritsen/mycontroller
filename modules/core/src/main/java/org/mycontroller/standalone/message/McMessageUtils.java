@@ -33,7 +33,6 @@ import org.mycontroller.standalone.provider.mysensors.MySensorsProviderBridge;
 import org.mycontroller.standalone.provider.mysensors.MySensorsUtils;
 import org.mycontroller.standalone.provider.phantio.PhantIOProviderBridge;
 import org.mycontroller.standalone.provider.rflink.RFLinkProviderBridge;
-import org.mycontroller.standalone.republisher.MqttRepublisherService;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -582,7 +581,6 @@ public class McMessageUtils {
                 _logger.warn("Unknown provider: {}", rawMessage.getNetworkType());
                 break;
         }
-
     }
 
     public static synchronized void sendToMessageQueue(McMessage mcMessage) {
@@ -607,12 +605,13 @@ public class McMessageUtils {
             _logger.error("Unable to process this {}", mcMessage, ex);
         }
 
-        if (AppProperties.getInstance().getMqttRepublisherSettings().getEnabled()) {
-            boolean success = MqttRepublisherService.QUEUE.offer(mcMessage);
-            if (!success) {
-                _logger.error("MQTT republish failed: queue full");
-            }
-        }
+        // XXX remove?
+//        if (AppProperties.getInstance().getMqttRepublisherSettings().getEnabled()) {
+//            boolean success = MqttRepublisherService.QUEUE.offer(mcMessage);
+//            if (!success) {
+//                _logger.error("MQTT republish failed: queue full");
+//            }
+//        }
     }
 
     private static RawMessage getRawMessage(McMessage mcMessage) throws RawMessageException, McBadRequestException {

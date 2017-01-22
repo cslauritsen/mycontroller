@@ -40,6 +40,7 @@ public class MqttRepublisherService {
     public static final BlockingQueue<McMessage> QUEUE = new ArrayBlockingQueue<>(100);
 
     public static synchronized void start() {
+        _logger.info("MQTT Republisher start request received");
         if (!AppProperties.getInstance().getMqttRepublisherSettings().getEnabled()) {
             _logger.debug("MQTT Republisher is not enabled. Not starting...");
             return;
@@ -48,8 +49,8 @@ public class MqttRepublisherService {
             _logger.info("MQTT Republisher already running, nothing to do...");
             return;
         }
-        THREAD_POOL.submit(new MqttRepublisher());
         isRunning = true;
+        THREAD_POOL.submit(new MqttRepublisher());
         _logger.info("MQTT Republisher started successfully.");
     }
 
