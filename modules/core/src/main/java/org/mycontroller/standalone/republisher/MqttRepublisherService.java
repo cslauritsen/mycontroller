@@ -71,10 +71,13 @@ public class MqttRepublisherService {
     }
 
     public static void publish(McMessage mcMessage) {
-        if (isRunning && AppProperties.getInstance().getMqttRepublisherSettings().getEnabled()) {
-            boolean success = MqttRepublisherService.QUEUE.offer(mcMessage);
-            if (!success) {
-                _logger.error("MQTT republish failed: queue full");
+        if (AppProperties.getInstance().getMqttRepublisherSettings().getEnabled()) {
+            if (isRunning) {
+                boolean success = MqttRepublisherService.QUEUE.offer(mcMessage);
+                if (!success) {
+                    _logger.error("MQTT republish failed: queue full");
+                    stop();
+                }
             }
         }
     }
