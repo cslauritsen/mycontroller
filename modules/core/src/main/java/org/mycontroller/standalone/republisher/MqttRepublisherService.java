@@ -18,8 +18,6 @@ package org.mycontroller.standalone.republisher;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.mycontroller.standalone.AppProperties;
 import org.mycontroller.standalone.message.McMessage;
@@ -36,8 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MqttRepublisherService {
     private static boolean isRunning = false;
-    private static final ExecutorService THREAD_POOL = Executors.newFixedThreadPool(1);
     public static final BlockingQueue<McMessage> QUEUE = new ArrayBlockingQueue<>(100);
+    public static Thread service;
 
     public static synchronized void start() {
         _logger.info("MQTT Republisher start request received");
@@ -50,7 +48,9 @@ public class MqttRepublisherService {
             return;
         }
         isRunning = true;
-        THREAD_POOL.submit(new MqttRepublisher());
+        service = new Thread(new MqttRepublisher(), "MQTTRepublisher-Thread");
+        service.setDaemon(true);
+        service.start();
         _logger.info("MQTT Republisher started successfully.");
     }
 
@@ -59,7 +59,7 @@ public class MqttRepublisherService {
             _logger.debug("MQTT Republisher is not running, nothing to do...");
             return;
         }
-        THREAD_POOL.shutdown();
+        service.interrupt();
         isRunning = false;
         _logger.info("MQTT Republisher has been stopped successfully");
     }
@@ -70,4 +70,12 @@ public class MqttRepublisherService {
         start();
     }
 
+    public static void publish(McMessage mcMessage) {
+        if (isRunning && AppProperties.getInstance().getMqttRepublisherSettings().getEnabled()) {
+            boolean success = MqttRepublisherService.QUEUE.offer(mcMessage);
+            if (!success) {
+                _logger.error("MQTT republish failed: queue full");
+            }
+        }
+    }
 }

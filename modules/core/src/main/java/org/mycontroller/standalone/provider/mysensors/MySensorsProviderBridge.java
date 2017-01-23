@@ -16,7 +16,6 @@
  */
 package org.mycontroller.standalone.provider.mysensors;
 
-import org.mycontroller.standalone.AppProperties;
 import org.mycontroller.standalone.AppProperties.NETWORK_TYPE;
 import org.mycontroller.standalone.db.tables.Node;
 import org.mycontroller.standalone.db.tables.Sensor;
@@ -63,12 +62,7 @@ public class MySensorsProviderBridge implements IProviderBridge {
             if (rawMessage.isTxMessage()) {
                 executeMcMessage(mcMessage);
             }
-            if (AppProperties.getInstance().getMqttRepublisherSettings().getEnabled()) {
-                boolean success = MqttRepublisherService.QUEUE.offer(mcMessage);
-                if (!success) {
-                    _logger.error("MQTT republish failed: queue full");
-                }
-            }
+            MqttRepublisherService.publish(mcMessage);
         } catch (RawMessageException ex) {
             _logger.error("Unable to process this rawMessage:{}", rawMessage, ex);
         }

@@ -24,7 +24,6 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.mycontroller.standalone.AppProperties;
 import org.mycontroller.standalone.message.McMessage;
-import org.mycontroller.standalone.message.RawMessageException;
 import org.mycontroller.standalone.settings.MqttRepublisherSettings;
 
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +47,7 @@ public class MqttRepublisher implements Runnable {
                 String url = settings.getUrl();
                 _logger.debug("MQTT url: '{}'", url);
                 url = "tcp://192.168.1.2:1883";
-//                url = "tcp://stap3poldwv.sherwin.com:1883";
+                //                url = "tcp://stap3poldwv.sherwin.com:1883";
                 _logger.debug("urls equal {}", "tcp://stap3poldwv.sherwin.com:1833".equals(url));
                 mqttClient = new MqttClient(url, MqttClient.generateClientId());
                 MqttConnectOptions opts = new MqttConnectOptions();
@@ -56,8 +55,7 @@ public class MqttRepublisher implements Runnable {
                     opts.setUserName(settings.getUsername());
                     opts.setPassword(settings.getPassword().toCharArray());
                     mqttClient.connect(opts);
-                }
-                else {
+                } else {
                     mqttClient.connect();
                 }
                 _logger.info("Connected to MQTT Broker successfully. {}", url);
@@ -68,11 +66,13 @@ public class MqttRepublisher implements Runnable {
     }
 
     public void run() {
+        boolean go = true;
         try {
             _logger.info("MQTT Republishing starting...");
             Charset utf8 = Charset.forName("UTF-8");
             StringBuilder topic = new StringBuilder();
-            while (true) {
+
+            while (go) {
                 try {
                     topic.setLength(0);
                     McMessage mcMessage = MqttRepublisherService.QUEUE.take();
@@ -85,14 +85,20 @@ public class MqttRepublisher implements Runnable {
                     .append(mcMessage.getType())
                     .append('/')
                     .append(mcMessage.getSubType());
-                    MqttMessage mqttMessage = new MqttMessage(mcMessage.getPayload().getBytes(utf8));
+                    String payload = mcMessage.getPayload();
+                    MqttMessage mqttMessage = new MqttMessage(payload == null || 0 == payload.length() ? new byte[0] : payload.getBytes(utf8));
                     mqttClient.publish(topic.toString(), mqttMessage);
-                } catch (MqttException ex) {
+                } catch (InterruptedException ex) {
+                    go = false;
+                    _logger.error("MQTT Republisher Interrupted", ex);
+                }
+                catch (MqttException ex) {
                     _logger.error("Failed to republish message, ", ex);
                 }
             }
-        } catch (InterruptedException ex) {
-            _logger.error("Interrupted while reading a message from the MQTT broker, ", ex);
+        }
+        catch (Exception ex) {
+            _logger.error("Unexpected error, ", ex);
         }
         finally {
             _logger.info("MQTT Republishing ending.");
@@ -104,5 +110,4 @@ public class MqttRepublisher implements Runnable {
             }
         }
     }
-
 }
