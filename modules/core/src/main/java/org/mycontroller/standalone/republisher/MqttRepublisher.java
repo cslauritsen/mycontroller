@@ -51,13 +51,16 @@ public class MqttRepublisher implements Runnable {
                 _logger.debug("urls equal {}", "tcp://stap3poldwv.sherwin.com:1833".equals(url));
                 mqttClient = new MqttClient(url, MqttClient.generateClientId());
                 MqttConnectOptions opts = new MqttConnectOptions();
+                opts.setWill(topicPrefix + "/lwt", new byte[0], 0, false);
                 if (settings.getUsername() != null && settings.getUsername().length() > 0) {
                     opts.setUserName(settings.getUsername());
-                    opts.setPassword(settings.getPassword().toCharArray());
-                    mqttClient.connect(opts);
-                } else {
-                    mqttClient.connect();
                 }
+                if (settings.getPassword() != null && settings.getPassword().length() > 0) {
+                    opts.setPassword(settings.getPassword().toCharArray());
+                }
+                opts.setAutomaticReconnect(true);
+                opts.setCleanSession(true);
+                mqttClient.connect(opts);
                 _logger.info("Connected to MQTT Broker successfully. {}", url);
             } catch (MqttException ex) {
                 _logger.error("Unable to connect to MQTT Broker, Exception, ", ex);
@@ -71,23 +74,31 @@ public class MqttRepublisher implements Runnable {
             _logger.info("MQTT Republishing starting...");
             Charset utf8 = Charset.forName("UTF-8");
             StringBuilder topic = new StringBuilder();
+            long droppedCount = 0L;
 
             while (go) {
                 try {
-                    topic.setLength(0);
                     McMessage mcMessage = MqttRepublisherService.QUEUE.take();
-                    topic.append(topicPrefix)
-                    .append('/')
-                    .append(mcMessage.getNodeEui())
-                    .append('/')
-                    .append(mcMessage.getSensorId())
-                    .append('/')
-                    .append(mcMessage.getType())
-                    .append('/')
-                    .append(mcMessage.getSubType());
-                    String payload = mcMessage.getPayload();
-                    MqttMessage mqttMessage = new MqttMessage(payload == null || 0 == payload.length() ? new byte[0] : payload.getBytes(utf8));
-                    mqttClient.publish(topic.toString(), mqttMessage);
+                    if (mqttClient.isConnected()) {
+                        topic.setLength(0);
+                        topic.append(topicPrefix)
+                        .append('/')
+                        .append(mcMessage.getNodeEui())
+                        .append('/')
+                        .append(mcMessage.getSensorId())
+                        .append('/')
+                        .append(mcMessage.getType())
+                        .append('/')
+                        .append(mcMessage.getSubType());
+                        String payload = mcMessage.getPayload();
+                        MqttMessage mqttMessage = new MqttMessage(payload == null || 0 == payload.length() ? new byte[0] : payload.getBytes(utf8));
+                        mqttClient.publish(topic.toString(), mqttMessage);
+                    } else {
+                        droppedCount++;
+                        if (droppedCount % 10 == 0) {
+                            _logger.warn("Failed to republish {} messages due to disconnected MQTT client", droppedCount);
+                        }
+                    }
                 } catch (InterruptedException ex) {
                     go = false;
                     _logger.error("MQTT Republisher Interrupted", ex);

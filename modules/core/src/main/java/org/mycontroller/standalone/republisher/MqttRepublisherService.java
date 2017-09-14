@@ -76,7 +76,6 @@ public class MqttRepublisherService {
                 boolean success = MqttRepublisherService.QUEUE.offer(mcMessage);
                 if (!success) {
                     _logger.error("MQTT republish failed: queue full");
-                    stop();
                 }
             }
         }
